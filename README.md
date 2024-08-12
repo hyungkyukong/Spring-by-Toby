@@ -40,5 +40,9 @@
   
 ##Container  
 ![image](https://github.com/user-attachments/assets/1f8a641e-ab66-4bcf-91aa-29d6ec0e3a04)
+Web Client는 요청을 하고 
+Web Component는 반환을 한다. 
 
+![image](https://github.com/user-attachments/assets/801b0cf8-0016-4471-913f-bc4355df1641)
+web Component는 Web Container안에 항상 들어가 있어야 한다. 
 
