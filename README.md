@@ -136,3 +136,39 @@ Spring Container는
 - 스프링 부트에 내장된 디폴트 구성을 커스터마이징 하는 매우 자연스럽고 유연한 방법제공 
 - 스프링 부트가 스프링을 사용하는 방식 이해 한다면 스프링 부트를 제거하고 원하는 방식으로 재구성 가능
 - 스프링 부트 처럼 기술과 구성을 간편하게 제공하는 나만의 모듈을 작성할 수 있다. 
+
+#프로젝트 생성 
+
+##Spring Initializr 
+- API로 이루어져있으면 유저가 호출하면 API가 그에 대응하는 서비스로 스프링부트 기반의 프로젝트를 
+  다운 받을 수 있다. 
+  
+>2.x 버전의 스프링 부트를 사용하지만 실제로 start.spring.io에서 생성하려 하니 
+>최신 기준만 존재 한다. 이전 버전의 스프링을 설치하고 싶다면 아래의 링크대로 실행하자. 
+>https://shanepark.tistory.com/492
+
+- start.spring.io를 통해서 초기 프로젝트를 생성할 수 있다. 
+
+
+생성 후 잘 생성됐는지 확인 차원에서 GET 방식의 API Controller를 생성한다. 
+파일이름은 HelloController로 한다. 
+
+```java
+package tobyspring.helloboot;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class HelloController {
+
+    @GetMapping("/hello")
+    public String hello(String name) {
+        return "Hello" + name;
+    }
+}
+```
+
+- GET 방식의 API다 
+- path는 /hello이고 파라미터로 name을 가진다. 
+- 호출 시 /hello?name=xxx 이렇게 호출이 가능하다. 
