@@ -210,3 +210,57 @@ web client와  web container간의 통신을 어떻게 결정하는거가
 - http 버전이 앞에 나온다. 
 - 그리고 상태 코드 값이 나온다. 200,400 이런것들 
 ![image](https://github.com/user-attachments/assets/69e9667f-176d-426d-af05-919eeba2599f)
+
+
+#Containerless 개발 준비 
+- 서블릿 컨테이너에 작업에대 관련된것들은 신경쓰지 않는다. 
+- Spring Container에 대한 신경만 쓰도록 한다. 
+- 이런것들을 스프링 부트에서 해주는 것이다. 
+
+예를 들면 web.xml, 서블릿 컨테이너 설치 이런것 없이 간단한 방법으러 서버를 띄우고 싶은것이다. 
+
+
+기존에 만들었던 HelloController를 보면 
+```java
+package tobyspring.helloboot;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class HelloController {
+
+    @GetMapping("/hello")
+    public String hello(String name) {
+        return "Hello" + name;
+    }
+}
+
+```
+
+return 타입에 따라 HTTP에 타입이 결정 되어진다. 
+여기서는 String 타입으로 리턴이 되어서 실제로 http로 리스폰을 던질때  
+해당 타입에 맞게 스프링이 던져 준다. 
+
+
+HellobootApplication를 보게 되면 
+@SpringBootApplication과 
+main메소드 안에 SpringApplcation.run이라는 함수를 통해  
+스프링이 톰캣을 띄우고 웹페이지에 접속이 되게끔 한다. 
+
+이런것 없이 일단은 스프링부트의 도움없이 띄워보는 작업을 할것이다. 
+그러기에앞서 HellobootApplication에서 어노테이션과 메소드를 다 지울것이다. 
+아래처럼 
+```java
+package tobyspring.helloboot;
+
+
+public class HellobootApplication {
+
+	public static void main(String[] args) {
+		System.out.println("Hello Containerless Standalone Application");
+	}
+
+}
+
+```
