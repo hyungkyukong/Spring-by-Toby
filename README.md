@@ -185,3 +185,28 @@ API로 테스트 하는 방법은 여러가지 방법이 있다.
 - Postman API Plaform 
 - JUnit Test 
 - 각종 API 테스트 도구 
+
+#HTTP요청과 응답
+![image](https://github.com/user-attachments/assets/a4ed8cef-4bd5-4506-945a-88e929d42882)
+web client와  web container간의 통신을 어떻게 결정하는거가 
+프로토콜이고 그 프로토콜 중 하나가 HTTP 이다
+
+##HTTP 
+>HTTP는 공부하기 위해서는 방대한 양의 정보를 습득해야 한다. 
+>하지만 그 많은 양을 공부하기에는 너무 비효율적이다. 그래서 웹개발에서 정말 필요한 부분만 
+>정리한것이다. 
+
+웹 Request와 Response의 기본 구조를 이해하고 내용을 확인할 수 있어야 한다. 
+
+*헤더
+- http 첫줄에는 어떤 메소드를 이용하겠다라는 정보가 나온다 
+  예를들면 post, delete, get 이런것을 말한다. 
+  
+- 그 뒤에는 host와 포트를 제외한 나머지 경로가 나온다. 
+- 마지막으로는 http 버전이 붙어서 나온다.   
+
+
+응답
+- http 버전이 앞에 나온다. 
+- 그리고 상태 코드 값이 나온다. 200,400 이런것들 
+![image](https://github.com/user-attachments/assets/69e9667f-176d-426d-af05-919eeba2599f)
