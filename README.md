@@ -172,3 +172,16 @@ public class HelloController {
 - GET 방식의 API다 
 - path는 /hello이고 파라미터로 name을 가진다. 
 - 호출 시 /hello?name=xxx 이렇게 호출이 가능하다. 
+
+
+#Hello API 테스트 
+
+API로 테스트 하는 방법은 여러가지 방법이 있다. 
+
+- 웹 브라우저 개발자 도구 
+- curl 
+- HTTPie
+- intellij IDEA Ultimate-http request 
+- Postman API Plaform 
+- JUnit Test 
+- 각종 API 테스트 도구 
