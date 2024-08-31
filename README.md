@@ -264,3 +264,44 @@ public class HellobootApplication {
 }
 
 ```
+
+
+#서블릿 컨테이너 띄우기 
+
+이런 서블릿은 자바의 표준 기술이고 이 표준 기술을 구현한 컨테이너 제품들이 많이 나와있다. 
+그 중 대중적인것이 톰캣이다. 
+
+톰캣을 메인메소드를 이용해서 띄울 것이다. 
+톰캣도 자바로 만들어진 제품이다. 
+
+톰캣은 설치를 통해 사용하는 것도 있지만 
+build in 처럼 내장해서 사용하는하는 내장형 톰캣이 존재한다. 
+그것을 임베디드 톰캣이라고 부른다. 
+
+initailizer를 통해 스프링은 만들 때 이미 임베디드 톰캣은 들어가 있다. 
+
+원래는 Tomcat이라는 클래스를 사용해서 톰캣을 띄울 수는 있지만 이 안에는 무수한 정보들이있고 
+이 정보들을 이용해서 많은 설정을을 다뤄야 한다. 하지만 스프링 부트에서는 이런 과정을 도와주는 것이 있다. 
+그것이 TomcatServletWebServerFactory 클래스다. 
+
+```java
+public static void main(String[] args) {
+	TomcatServletWebServerFactory serverFactory = new TomcatServletWebServerFactory();
+	WebServer webServer = serverFactory.getWebServer();// 서블릿 컨테이너를 만드는 생성 함수를 의미한다. 
+	
+}
+```
+
+이것은 WebServer라는 클래스로 받을 수 있다. 톰캣 말고도 다른 웹서버들이 존재하기에 추상화를 통해 클래스명이 WebServer인것이다. 
+
+
+```java
+public static void main(String[] args) {
+	ServletWebServerFactory serverFactory = new TomcatServletWebServerFactory();
+	WebServer webServer = serverFactory.getWebServer();// 서블릿 컨테이너를 만드는 생성 함수를 의미한다.
+	webServer.start();
+	
+}
+```
+위에 처처럼 ServletWebServerFatory라는 클래스로도 받을 수 있다. 
+그리고 webServer.start()라는 함수를 실행해서 톰캣 서블릿 테이너가 동작을 한다. 
