@@ -452,3 +452,46 @@ protected void service(HttpServletRequest req, HttpServletResponse resp) throws 
 - 만약 경로에 매핑 되는 것이 없다면은 404 에러를 발생하면 된다. 
 - 위의 코드는 한 소스 안에 표현했지만 각각 처리해야 하는 부분은 다른 파일로 뺄 수가 있다. 
 - req.getMethod를 통해 GET 방식의 메소드만 받아 처리할 수도있다. 
+
+
+#Hello 컨트롤러 매핑과 바인딩 
+```java
+public class HelloController {
+
+    public String hello(String name) {
+        return "Hello" + name;
+    }
+}
+```
+
+- 스프링이 없었을 때 각각 서블릿이 처리하는 파일을 만든다는 가정할 해야 하므로 이전에 만들었던 HelloController에서 
+  어노테이션 관련 부분을 모두 제거했다. 
+  
+  
+  
+```java
+HelloController helloController = new HelloController();
+```  
+HellobootApplication.java에서  싱글톤 형식 마냥 인스턴스를 만들어서 처리한다. 
+
+
+```java
+protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+	//인증, 보완, 다국어, 공통기능 처리
+	if (req.getRequestURI().equals("/hello") && req.getMethod().equals(HttpMethod.GET.name())) {
+		String name = req.getParameter("name");
+
+		String ret = helloController.hello(name);
+
+		resp.setStatus(HttpStatus.OK.value());
+		resp.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE);
+		resp.getWriter().println(ret);
+	} else if (req.getRequestURI().equals("/user")) {
+		//
+	} else {
+		resp.setStatus(HttpStatus.NOT_FOUND.value());
+	}
+}
+```
+
+- helloController에서 hello함수를 이용해 처리한 데이터를(ret) 다시 리턴해주는 기능을 구현했다. 
