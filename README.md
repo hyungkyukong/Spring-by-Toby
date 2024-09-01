@@ -305,3 +305,39 @@ public static void main(String[] args) {
 ```
 위에 처처럼 ServletWebServerFatory라는 클래스로도 받을 수 있다. 
 그리고 webServer.start()라는 함수를 실행해서 톰캣 서블릿 테이너가 동작을 한다. 
+
+
+#서블릿 등록 
+
+```java
+public static void main(String[] args) {
+	ServletWebServerFactory serverFactory = new TomcatServletWebServerFactory();
+	WebServer webServer = serverFactory.getWebServer(servletContext ->{
+		servletContext.addServlet("hello", new HttpServlet(){
+			@Override
+			protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+				resp.setStatus(200);
+				resp.setHeader("Content-Type", "text/plain");
+				resp.getWriter().println("Hello Servlet");
+			}
+		}).addMapping("/hello");
+	});
+	webServer.start();
+
+}
+```
+![image](https://github.com/user-attachments/assets/9cf02527-45f5-4634-8aa7-525ed35c365d)
+
+- getWebServer 함수는파라미터로  ServletContextInitializer형식의 파람을 받을 수 있다. 
+   ServletContextInitializer는 서블릿 컨테이너에다가 서블릿을 등록하는데 필요한 작업을 수행하는 오브젝트를 만들때 
+   쓴다 
+-  ServletContextInitializer는 인터페이스여서 여기서는 익명 클래스로 만든다. 
+   ServletContextInitializer는 메소드가 하나인 인터페이스이고 이것은 람다식으로 대체가 가능하다. 
+- 람다식에는 메소드가 하나이므로 여기서는 void onStartup(ServletContext servletContext)이다. 
+  servletContext이것을 받아서 구현한 것이라고 생각하면 된다. 
+- 두번째 인자로 HeepServlet을 받는다. 이것은 공통적인 부분을 구현해 놓고 이걸 상속해서 쓰도록 하는 어뎁터 클래스이다. 
+  그 상속받은 클래스에서 필요한 부분만 오버라이딩해서 사용하면 된다. 
+- 여기서 실제 Servlet 기능을 구현한것은 service이다. 
+- 이 서블릿은 어떻게 요청 받아 처리할지는 addMapping("/hello")를 통해 처리 한다 즉 url이 /hello이면 여기서 
+  HttpServlet에서의  service가 처리해서 응답을 리턴해준다고 생각하면 된다. 
+- 그 응답 처리로 resp 변수에 있는 응답코드, 헤더, body 부분을 처리해서 리턴해준다. 
