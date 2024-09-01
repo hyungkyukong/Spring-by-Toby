@@ -402,3 +402,53 @@ public static void main(String[] args) {
 프론트 컨트롤러가 공통적으로 처리해주는 작업 
 - 인증, 보안, 다국어 처리 
 - 모든 요청에 대해서 공통적으로 리턴해줘야 하는 내용이 있는 것 
+
+
+#프론트 컨트롤러로 전환 
+```java
+public static void main(String[] args) {
+	ServletWebServerFactory serverFactory = new TomcatServletWebServerFactory();
+	WebServer webServer = serverFactory.getWebServer(servletContext ->{
+		servletContext.addServlet("frotcontroller", new HttpServlet(){
+			@Override
+			protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+				String name = req.getParameter("name");
+
+				resp.setStatus(HttpStatus.OK.value());
+				resp.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE);
+				resp.getWriter().println("Hello " + name);
+			}
+		}).addMapping("/*");
+	});
+	webServer.start();
+
+}
+```
+
+이전 소스를 프론트 컨트롤러로 전환하는 방법에 대해 알아보자 
+
+일단 서블릿 이름은 frontcontroller로 변경했고 
+모든 요청에 대해 이 서블릿이 처리를 해야 하니 addMapping에서 /*으로 url 패턴을 변경했다. 
+
+
+```java
+protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+				//인증, 보완, 다국어, 공통기능 처리
+				if (req.getRequestURI().equals("/hello") && req.getMethod().equals(HttpMethod.GET.name())) {
+					String name = req.getParameter("name");
+
+					resp.setStatus(HttpStatus.OK.value());
+					resp.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE);
+					resp.getWriter().println("Hello " + name);
+				} else if (req.getRequestURI().equals("/user")) {
+					//
+				} else {
+					resp.setStatus(HttpStatus.NOT_FOUND.value());
+				}
+			}
+```
+- 이러헥 모든 거를 처리하는 로직이 인증, 보완, 다국어 이렇게 처리하고 나서 각각 처리해야 할 부분은 
+  url의 경로를 이용해서 각기 다르게 처리하도록하면된다. 
+- 만약 경로에 매핑 되는 것이 없다면은 404 에러를 발생하면 된다. 
+- 위의 코드는 한 소스 안에 표현했지만 각각 처리해야 하는 부분은 다른 파일로 뺄 수가 있다. 
+- req.getMethod를 통해 GET 방식의 메소드만 받아 처리할 수도있다. 
