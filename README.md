@@ -593,3 +593,32 @@ public static void main(String[] args) {
 
 }
 ```
+
+#의존 오브젝트 추가 
+
+기존 서블릿 컨테이너를 사용할 때와 스프링 컨테이너를 사용하고 나서 이점은 무엇인가? 
+
+- 서블릿은 싱글톤으로 Bean을 관리한다. 즉 n개의 서블릿이 만들어지고 A라는 Bean을 호출하면 n개의 각기 다른 Bean 오브젝트를 
+  리턴해주는것이 아닌 오직 1개인 Bean을 동일하게 리턴해 준다. 
+  
+  
+```java
+public class SimpleHelloService {
+    String sayHello(String name) {
+        return "Hello " + name;
+    }
+}
+```
+이름을 받으면 그 이름 앞에 prefix로 "Hello"를 붙여서 리턴하는 SimpleHelloService라는 클래스를 만들었다. 
+
+```java
+public String hello(String name) {
+	SimpleHelloService helloService = new SimpleHelloService();
+	return helloService.sayHello(Objects.requireNonNull(name));
+}
+```
+- HelloController의 hello 함수도 기존에 "Hello"를 붙여서 하는 로직을 처리하는게 아닌 
+- SimpleHelloService를 호출해서 여기서 처리하도록 소스를 수정해준다. 
+- 컨트롤러에서 중요한 역할 중 하나는 유저의 요청사항을 검증하는 것이다. 
+  즉 name이 공백인지를 판단 하는 유효 검사가 필요 하다. 
+  Objects.requireNonNull이 인자가 null이면 예외를 던지고 아니면 그 값을 그대로 리턴해준다. 
