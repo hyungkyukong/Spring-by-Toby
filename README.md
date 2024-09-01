@@ -341,3 +341,47 @@ public static void main(String[] args) {
 - 이 서블릿은 어떻게 요청 받아 처리할지는 addMapping("/hello")를 통해 처리 한다 즉 url이 /hello이면 여기서 
   HttpServlet에서의  service가 처리해서 응답을 리턴해준다고 생각하면 된다. 
 - 그 응답 처리로 resp 변수에 있는 응답코드, 헤더, body 부분을 처리해서 리턴해준다. 
+
+#서블릿 요청 처리 
+```java
+public static void main(String[] args) {
+	ServletWebServerFactory serverFactory = new TomcatServletWebServerFactory();
+	WebServer webServer = serverFactory.getWebServer(servletContext ->{
+		servletContext.addServlet("hello", new HttpServlet(){
+			@Override
+			protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+				resp.setStatus(HttpStatus.OK.value());
+				resp.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE);
+				resp.getWriter().println("Hello Servlet");
+			}
+		}).addMapping("/hello");
+	});
+	webServer.start();
+
+}
+
+}
+```
+- resp.setHeader에 있는 2개의 인자는 오타가 날 상황이 많기 때문에 enum으로 값을 세팅할 수 있다.  
+  이걸을 권장한다. 
+  
+```java
+public static void main(String[] args) {
+	ServletWebServerFactory serverFactory = new TomcatServletWebServerFactory();
+	WebServer webServer = serverFactory.getWebServer(servletContext ->{
+		servletContext.addServlet("hello", new HttpServlet(){
+			@Override
+			protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+				String name = req.getParameter("name");
+
+				resp.setStatus(HttpStatus.OK.value());
+				resp.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE);
+				resp.getWriter().println("Hello " + name);
+			}
+		}).addMapping("/hello");
+	});
+	webServer.start();
+
+}
+```  
+- req.getParameter를 사용해서 GET방식의 바라미터를 받아서 처리할 수 있다. 
