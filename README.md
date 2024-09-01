@@ -495,3 +495,101 @@ protected void service(HttpServletRequest req, HttpServletResponse resp) throws 
 ```
 
 - helloController에서 hello함수를 이용해 처리한 데이터를(ret) 다시 리턴해주는 기능을 구현했다. 
+
+#스프링 컨테이너 사용 
+
+기존에는 프론트 컨트롤러가 모든것을 처리하고 그 뒤로 오브젝트인 Hello Controller에게 책임을 위임해주는 방식이었다면 
+이번에는 Spring Container 안에 집어 넣는걸로 해보겠다. 
+
+컨테이너는 여러개의 오브젝트를 가지고있다가 필요할 때 이 오브젝트가 사용되어지도록 관리해주는 것이다. 
+
+스프링의 컨테이너가 동작하기 위해서는 2가지가 필요 하다. 
+1.우리의 비즈니스를 담고 있는 비즈니스 오브젝트 
+  즉 우리가 개발한 옵젝트를 말한다 
+  
+2.위의 것을 어떤식으로 구성할지에 대한 구성 정보를 담고 있는 Configuration Metadata 정보 
+
+이 두가지를 조합해서 사용 가능한 시스템으로 만들어 내는 것이다. 
+
+ 
+```java
+protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+	//인증, 보완, 다국어, 공통기능 처리
+	if (req.getRequestURI().equals("/hello") && req.getMethod().equals(HttpMethod.GET.name())) {
+		String name = req.getParameter("name");
+
+		String ret = helloController.hello(name);
+
+		resp.setContentType(MediaType.TEXT_PLAIN_VALUE);
+		resp.getWriter().println(ret);
+	}
+	else {
+		resp.setStatus(HttpStatus.NOT_FOUND.value());
+	}
+}
+```
+- 다른 경로의 것은 안쓸거기 때문에 /user 관련 소스코드는 줄였다. 
+- setHeader 대신 setContentType을 사용해서 인자로 하나만 받도록 수정했다. 
+- 또한 프론트 컨트롤러에서 직접 빈을 생성할 것이 아니기 때문에 HelloController 인스턴스를 제거했다. 
+
+
+그 후에 스프링 컨테이너를 만들어 보자 
+스프링 컨테이너를 대표하는 인터페이스 이름이 있다. ApplicationContext라는 것이다. 
+이것을 구현한 것 중에 대표적인게 GenericApplicationContext이다. 
+
+```java
+GenericApplicationContext applicationContext = new GenericApplicationContext();
+```
+
+- 서블릿 컨테이너에서는 책임을 건가할 오브젝트를 new 생성자로 생성해서 addServlet으로 서블릿을 추가해줬다면 
+- 스프링에서는 오브젝트를 생성하는것이 아닌 어떤 클래스를 이용해서 Bean 오브젝트를 생성할것인가에 대한 메타 정보를 넣어주는 
+  방식으로 구성을 한다. 
+  
+- 그렇게 정보를 구성해주는건 registerBean이라는 함수를 통해 만들 수 있으며 
+- 인자는 Bean에 대항하는 클래스 정보가 해당된다.
+```java
+GenericApplicationContext applicationContext = new GenericApplicationContext();
+applicationContext.registerBean(HelloController.class);
+```
+
+- 위의 소스 코드를 가지고 스프링은 Bean을 만들것이다. 
+- applicationContext.refresh();를 하면 다시 Bean을 만들어주는 기능을 할것이다. 
+
+```java
+HelloController helloController = applicationContext.getBean(HelloController.class);
+	String ret = helloController.hello(name);
+```
+- 기존에 helloController는 오브젝트를 생성해서 가져왔다면 이제는 스프링이 Bean을 만들어서 거기에서 Bean을 가져와 쓰게끔 해준다. 
+
+아래는 모든 코드가 적용된 모습이다. 
+```java
+public static void main(String[] args) {
+	GenericApplicationContext applicationContext = new GenericApplicationContext();
+	applicationContext.registerBean(HelloController.class);
+	applicationContext.refresh();
+
+	ServletWebServerFactory serverFactory = new TomcatServletWebServerFactory();
+	WebServer webServer = serverFactory.getWebServer(servletContext ->{
+		servletContext.addServlet("frotcontroller", new HttpServlet(){
+			@Override
+			protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+				//인증, 보완, 다국어, 공통기능 처리
+				if (req.getRequestURI().equals("/hello") && req.getMethod().equals(HttpMethod.GET.name())) {
+					String name = req.getParameter("name");
+
+					HelloController helloController = applicationContext.getBean(HelloController.class);
+					String ret = helloController.hello(name);
+
+					resp.setContentType(MediaType.TEXT_PLAIN_VALUE);
+					resp.getWriter().println(ret);
+				}
+				else {
+					resp.setStatus(HttpStatus.NOT_FOUND.value());
+				}
+			}
+		}).addMapping("/*");
+	});
+	webServer.start();
+
+}
+```
