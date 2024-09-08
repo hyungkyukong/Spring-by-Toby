@@ -763,3 +763,77 @@ public static void main(String[] args) {
 DiscpatchServlet은 url에 대해 잘받긴 하지만 그 url에 대해 어떤 bean이 처리를 해야 할지 모르기 때문이다. 
 url과 bean의 매핑할 수 있는 방법은 여러가지가 존재 한다. 
 그 중 하나의 방법은 다음과 같다.
+
+
+#애노테이션 매핑 정보 사용
+
+서블릿 컨테이너 코드 대신에 컨트롤러 클래스안에다가 매핑정보를 집어 넣는거를 해보도록한다. 
+
+
+HelloController를 아래와 같이 변경 하도록 한다. 
+
+```java
+@RestController
+public class HelloController {
+
+    private final HelloService helloService;
+
+    public HelloController(HelloService helloService) {
+        this.helloService = helloService;
+    }
+
+    @GetMapping("/hello")
+    public String hello(String name) {
+        SimpleHelloService helloService = new SimpleHelloService();
+        return helloService.sayHello(Objects.requireNonNull(name));
+    }
+}
+```
+
+디스패처 서블릿은 빈은 먼저 다 조회를 한다. 
+이중에서 웹 요청을 처리할 수 있는 맵핑정보를 가지고 있는 클래스를 찾는다. 
+
+/hello로 들어오면 hello 메소드다 이런걸 다 알아봐서 매핑에 사용할 매핑테이블을 하나 만들어 둔다. 
+그 이후 웹 요청이 들어오면 이걸 참고해서 이걸 담당할 빈 오브젝트와 메소드를 확인하는것이다. 
+
+하지만 디스패처 서블릿이 모든 bean을 다 찾는건 어렵다. 그래서 클래스 레벨의 어노테이션까지 보기도 한다. 
+
+```java
+@RequestMapping("/hello")
+public class HelloController {
+
+    private final HelloService helloService;
+
+    public HelloController(HelloService helloService) {
+        this.helloService = helloService;
+    }
+
+    @GetMapping
+    public String hello(String name) {
+        SimpleHelloService helloService = new SimpleHelloService();
+        return helloService.sayHello(Objects.requireNonNull(name));
+    }
+}
+```
+
+아래와 같이 변경하도록 하고 서버를 재시작하자 
+에러가 발생할것이다. 
+
+DispatchServlet은 String 타입으로 반환한다면 관례적으로 view를 리턴해주게 되어있다. 
+만약 "hello kong"라는 String 타입이 리턴된다면 그건 해당 문자열을 그대로 리턴해주는게 아닌 
+"hello kong"라는 view가 있는지를 찾게 된다. 그런 view가 없으니 404 not found 에러가 발생할 것이다. 
+
+그러면 String값 그대로 web 응답에 body에 넣어서 전달하게 하는 text/plain으로 전달하게 하는 방법은 무엇일까? 
+- 그것은 @ResponseBody라는 어노테이션을 뒤에 붙이면된다. 
+
+```java
+@GetMapping
+@ResponseBody
+```
+
+다시 서버 재시작 하면 정상적으로 작동할것이다. 
+
+
+이전에 테스트 할때는 @ResponseBody가 없어도 잘만 동작했다 왜 그랬을까? 
+기존에는 @RestController라는 클래스 레벨에 어노테이션이있었다. 
+이 어노테이션은 rest통신을 한다고 인식하고 모든 메소드에 @ResponseBody라는 어노테이션이 있다고 생각하기 때문이다. 
