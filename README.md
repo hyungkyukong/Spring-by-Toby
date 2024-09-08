@@ -670,3 +670,57 @@ HelloService(Interface)
 2.FactoryMethod로 Bean을 만들도록하면서 파라미터로 넘기는 방법도 있다. 
 
 3.HelloController에 프로퍼티로서 getter, setter를 이용해서 주입받는 경우도있다.   
+
+#의존 오브젝트 DI 적용 
+HelloController가 
+이전에는 SimpleHelloService를 직접생성하셔 사용했다면 
+이제는 생성자로 받는 방법으로 변경해 본자 
+
+일단 SimpleHelloService 클래스는 HelloService라는 인터페이스를 구현하는걸로 구조를 바꾸고 
+HelloService라는 인터페이스 클래스를 생성하도록한다. 
+
+```java
+package tobyspring.helloboot;
+
+public class SimpleHelloService implements HelloService {
+    @Override
+    public String sayHello(String name) {
+        return "Hello " + name;
+    }
+}
+
+```
+
+
+```java
+package tobyspring.helloboot;
+
+public interface HelloService {
+    String sayHello(String name);
+}
+
+```
+
+그리고 HelloController에서 SimpleHelloService를 직접 생성하는것이 아닌 생성자로 받는걸로 변경해 보자 
+
+HelloController를 Bean으로 등록해달라고 HellobootApplication에 코딩을 해놨다. 
+HelloService도 동일하게 등록을 해줘야 한다. 
+
+```java
+applicationContext.registerBean(HelloService.class);
+```
+위와 같이 등록하면 될것 같지만 HelloService는 인터페이스이지 클래스가 아니라서 클래스로 해야 한다. 
+그래서 아래와 같이 SimpleHelloService로 대체 한다. 
+
+
+스프링은 HelloController에서 SimpleHelloService가 필요하다는걸 어떻게 알까? 
+기존에는 xml로 실제 어떤 클래스가 필요한지까지 다 기재를 했었다. 
+
+하지만 요즘에는 관례와 룰을 이용해서 알아서 매핍을 해준다. 
+HelloController에서  생성자는  HelloService 타입이다. 
+스프링 컨테이너는 Bean으로 만든것 중 HelloService로 구현한 것을 찾아본다. 
+찾은 결과가 SimpleHelloService를 찾았고 이것을 매핑해줬다고 생각하면된다. 
+
+```java
+applicationContext.registerBean(SimpleHelloService.class);
+```
