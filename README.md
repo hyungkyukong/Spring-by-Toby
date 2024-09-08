@@ -622,3 +622,51 @@ public String hello(String name) {
 - 컨트롤러에서 중요한 역할 중 하나는 유저의 요청사항을 검증하는 것이다. 
   즉 name이 공백인지를 판단 하는 유효 검사가 필요 하다. 
   Objects.requireNonNull이 인자가 null이면 예외를 던지고 아니면 그 값을 그대로 리턴해준다. 
+
+#Dependency Injection 
+
+HelloController  ----> SimpleHelloService 
+
+- HelloController는 SimpleHelloService에 영향을 받는다. 
+  SimpleHelloService에 내용이 바뀐다거나 할 때 영향을 받는 다는 의미이다. 
+- 이 의미는 HelloController는 SimpleHelloService에 '의존' 하고 있다라는 의미가 된다. 
+- 만약 SimpleHelloService사용하지 않고 새로운 ComplexHelloService라는 것을 사용하게 된다면 
+  HelloController에서는 소스 코드의 수정이 이루어져야 한다. 예를 들면 new 생성자가 바뀌어야 한다. 
+  
+
+===========================
+HelloController  
+HelloService(Interface) 
+-SimpleHelloService 
+-ComplexHelloService
+===========================
+  
+- 그래서 HelloService라는 인터페이스를 중간에 만들어 준다   
+- HelloController는 HelloService만 알면 되고 
+- 구현체들은 HelloService에 맞춰서 구현만 하면 되기 때문이다. 
+
+
+- 하지만 실제 런타임 상황에서는 HelloController가 인터페이스 HelloService를 이용한다 하더라도 
+  실제 어떤 구현체를 사용하는지 알아야한다. 
+- 이런 내용을 처리해주는거를 의존성 주입이라고 하고 이것은 구현체와 이것을 사용하는 HelloController가 하는것이 아닌 
+  제 3의 존재가 해야 하고 이를 Assembler라고 한다. 
+
+- 만약 런타임에서 HelloController가 SimpleHelloService가 아닌 ComplexHelloService를 사용하고싶으데 
+  현재의 소스코드를 고치고 싶지 않을 경우가 있다. 
+  이런것은 컨트롤러가 사용하는 오브젝트를 직접 new 생성자 사용해서 만드는 대신에 외부에서 그 오브젝트를 만들어서 
+  컨트롤러가 사용할 수 있도록 주입해주는것이다.  이작업을 해주는것이 위에서 언급했듯이 Assembler라고 한다  
+  
+> 이러한 Assembler를 우리는 Spring Container라고 부른다. 
+
+스프링 컨테이너 하는 역할 
+- 우리가 메타 정보를 주면 스프링 컨테이너는 클래스로 싱글톤으로 만들고 이 오브젝트가 사용할 다른 오브젝트가 있다면 이 오브젝트를 주입해주는 
+  작업까지 수행해 준다. 
+
+
+주입하는 방법 
+1.실제 주입받을 클래스에 주입 받을 클래스를 생성자 파라미터로 받는자. 
+  예로 설명하면 HelloController 생성자에 HelloService 파라미터를 받는것이다. 
+  
+2.FactoryMethod로 Bean을 만들도록하면서 파라미터로 넘기는 방법도 있다. 
+
+3.HelloController에 프로퍼티로서 getter, setter를 이용해서 주입받는 경우도있다.   
