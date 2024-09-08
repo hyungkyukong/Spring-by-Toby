@@ -724,3 +724,42 @@ HelloController에서  생성자는  HelloService 타입이다.
 ```java
 applicationContext.registerBean(SimpleHelloService.class);
 ```
+
+
+#DispatcherServlet으로 전환 
+
+일단 HellobootApplication main메소드에있는 것 중
+addServlet을 다 날린다. (frontcontroller)
+
+
+
+DispatcherServlet은 오래전부터 사용하는 대중적이느 서블릿이고 fronController의 많은 기능들을 수행해 준다.
+frontController의 기능 중 요청된 url에 맞춰 처리해주는 다른 클래스를 찾아주고 뭐 이런것들이 있는데 
+이런것을 하려고 하면은 크프링컨테이너를 알고있어야 하는데 그러기 위해선 파라미터로 applicationContext를 넣어준다. 
+
+DispatcherServlet은 GenericApplicationContext보다는 web에서 사용하기 때문에 
+GenericWebApplicationContext 타입을 받도록 되어있다. 
+
+```java
+public static void main(String[] args) {
+		GenericWebApplicationContext applicationContext = new GenericWebApplicationContext();
+		applicationContext.registerBean(HelloController.class);
+		applicationContext.registerBean(SimpleHelloService.class);
+		applicationContext.refresh();
+
+		ServletWebServerFactory serverFactory = new TomcatServletWebServerFactory();
+		WebServer webServer = serverFactory.getWebServer(servletContext ->{
+			servletContext.addServlet("frotcontroller", new DispatcherServlet(applicationContext)
+					).addMapping("/*");
+		});
+		webServer.start();
+
+	}
+```
+
+
+이대로 다시 실행하면 에러가 발생할 것이다. 
+
+DiscpatchServlet은 url에 대해 잘받긴 하지만 그 url에 대해 어떤 bean이 처리를 해야 할지 모르기 때문이다. 
+url과 bean의 매핑할 수 있는 방법은 여러가지가 존재 한다. 
+그 중 하나의 방법은 다음과 같다.
