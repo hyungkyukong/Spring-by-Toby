@@ -837,3 +837,81 @@ DispatchServlet은 String 타입으로 반환한다면 관례적으로 view를 �
 이전에 테스트 할때는 @ResponseBody가 없어도 잘만 동작했다 왜 그랬을까? 
 기존에는 @RestController라는 클래스 레벨에 어노테이션이있었다. 
 이 어노테이션은 rest통신을 한다고 인식하고 모든 메소드에 @ResponseBody라는 어노테이션이 있다고 생각하기 때문이다. 
+
+
+
+#스프링 컨테이너로 통합
+
+스프링 컨테이너의 초기화 작업은 refresh()에서 일어난다. 
+HellobootApplication에 소스코드로 있다. 
+
+refresh()는 템플릿 메소드로 만들어져있다. 
+
+> 템플릿 메소드란 상위 클래스에서는 공통적인 알고리즘을 만들어 넣고 
+> 변경되어야 할 부분만 하위 클래스에서 다시 오버라이딩을 통해 한다고 이해하면 될것이다. 
+
+템플릿 메소드 안에서 일정한 순서에 의해 작업들이 호출이 되는데 
+그 중 onRefresh 라는것이 있다. 
+
+즉 스프링 컨테이너를 초기화 하는 중에 부가적으로 작업을 수행할 필요가 있다면 이걸 사용하라고 만들어 놓은것이다. 
+
+템플릿 메소드 패턴은 상속을 통해서 기능을 확장하도록 만든거니 
+지금 사용하고있는 GenericWebApplicationContext를 사용해서 새로운 클래스를 만들어야 한다. 
+그래서 메소드를 오버라이딩해서 사용할 수 있다. 
+여기서는 익명 클래스로 사용하도록 하겠다. 
+
+오버라이드 할 메소드는 onRefresh 메소드이고 이 메소드드에서 super.onRefresh()는 생략하면 안된다. 
+GenericWebApplicationContext에서드 추가적인 작업을 수행하기 때문이다. 
+
+아마 applicationContext 변수 때문에 에러가 발생할 것이다. 
+기존에는 DispatcherSevlet에다가 해당 정보를 변수화해서 넣어야 했었으나 
+이제는 본인 자신인 정보를 넘겨주면되므로 this를 입력하면 된다. 
+
+```java
+package tobyspring.helloboot;
+
+
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.web.server.WebServer;
+import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
+import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.web.context.support.GenericWebApplicationContext;
+import org.springframework.web.servlet.DispatcherServlet;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+public class HellobootApplication {
+
+	public static void main(String[] args) {
+		GenericWebApplicationContext applicationContext = new GenericWebApplicationContext() {
+			@Override
+			protected void onRefresh() {
+				super.onRefresh();
+
+				ServletWebServerFactory serverFactory = new TomcatServletWebServerFactory();
+				WebServer webServer = serverFactory.getWebServer(servletContext ->{
+					servletContext.addServlet("frotcontroller", new DispatcherServlet(this)
+					).addMapping("/*");
+				});
+				webServer.start();
+			}
+		};
+		applicationContext.registerBean(HelloController.class);
+		applicationContext.registerBean(SimpleHelloService.class);
+		applicationContext.refresh();
+
+
+
+	}
+
+}
+
+```
