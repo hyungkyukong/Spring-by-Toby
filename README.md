@@ -915,3 +915,91 @@ public class HellobootApplication {
 }
 
 ```
+
+#자바코드 구성 정보 사용 
+
+스프링 컨테이너가 사용하는 구성 정보 
+즉 우리가 만든 코드를 어떻게 오브젝트로 만들어서 컨테이너 내에 컴포넌트로 등록해 두고 
+스프링컨테이너 안에 들어있는 Bean이라고 불리는 오브젝트 또다른 오브젝트를 사용한다면(의존)
+이 관계를 어떻게 맺어줄 것인가를 어느 시점에 그 오브젝트를 주입해줄 것인가 이런 등등의 정보들을 
+스프링 컨테이너에다가 구성 정보로 제공해줘야 한다. 
+
+이런 구성정보를 제공하는 방식이 여러 가지가있었다. 
+이전에는 외부 설정 파일을 이용했었다.
+
+이번시간에는 팩토리 메서드를 이용할것이다. 
+
+팩토리 메서드 
+- 어떤 오브젝트를 생성하는 로직을 담고 있는 어떤 메서드이다. 
+* 팩토리 메서드에서 빈 오브젝트를 생성하고 의존 관계도 주입하고 스프링컨테이너에게 빈으로 등록해서 이후에 사용하면된다고 알려주게 한다. 
+
+>앞서 서블릿 컨테이너 방식일때는 이렇게 사용하지만 스프링컨테이너 방식일때는 이 방식을 안써도 된다고 알고있다. 
+>일반적일때는 맞지만 예외 상황일때는 이렇게 사용하기도 한다. 
+
+
+팩토리 메소드는 평범한 자바로 만들면된다. 
+
+일단 HellobootApplication에다가 생성자를 만들어서 인스턴스를 리턴하는 함수를 만든다. 
+```java
+public HelloController helloController() {
+	return new HelloController();
+}
+```
+
+아래는 서비스에 대한 인터페이스 생성자를 만든다. 
+리턴으로는 구현제 오브젝트가 아닌 인터페이스의 오브젝트를 사용한다. 
+더 확장하기 좋기 때문이다. 
+```java
+public HelloService helloService() {
+	return new SimpleHelloService();
+}
+```
+
+이런 코드 자체가 팩토리 메소드라고 볼 수 있다. 
+
+
+HelloController 타입을 만들때는 HelloService 오브젝트를 생성자로 주입해줘야 한다. 이건 어떻게 가져올것인가가
+문제가 될 수 있다. 
+이거를 가져오는 방법도 여러가지이긴한데 그중에 방법 하나는 
+
+
+어차피 위의 팩토리 메소드는 스프링컨테이너가 호줄 할것이다. 생성자에다가 
+주입받을 HelloService 오브젝트를 넣어서  스프링컨테이너한테 나는 생성자를 할때 이것을 주입받을거라는걸 알려주는것이다. 
+그리고 스프링 컨테이너에 빈으로 등록하기 위해서는 @Bean이라는 어노테이션을 붙인다. 
+
+```java
+@Bean
+public HelloController helloController(HelloService helloService) {
+	return new HelloController(helloService);
+}
+```
+
+한가지 더 Bean오브젝트를 등록하기 위한 팩토리 메서드를 가진 클래스다라는거를 또 스프링컨테이너에 알려줘야 하는데 
+이거를 클래스 레벨에도 표기를 하고 그 표기항법은 클래스 레벨에 @Configuration이라는 어노테이션을 붙이도록 한다. 
+
+@Configuration 
+public class HellobootApplication으로 하면 된다. 
+
+이제 이 클래스를 정말 구성정보로 사용하기 위해서는 2가지 작업이 더 필요 하다. 
+기존에 우리가 사용해오던 Generic Application Context는 java코드로 만든 configuration 정보를 읽을 수가 없다. 
+```java
+GenericWebApplicationContext applicationContext = new GenericWebApplicationContext() {
+```
+그래서 이거를 살짝 바꿔줘야 한다. 
+```java
+AnnotationConfigWebApplicationContext applicationContext = new AnnotationConfigWebApplicationContext() {
+```
+어노테이션이 붙은 java를 이용한 구성정보를 읽어 오는 역할을 한다. 
+
+그리고 이전에는 registerBean이라는 것을 이용해서 직접 어떤 클래스를 이용해서 bean object를 만들것인가 이거를 넣는데 
+지금은 에러가 날 것이다. AnnotationConfigWebApplicationContext은 이것을 지원하지 않는다. 
+그래서 2개의 등록한 코드는 지워 주도록 한다. 
+
+대신 java 코드로된 구성정보를 가지고있는 클래스를 등록해준다. 
+
+```java
+applicationContext.register(HellobootApplication.class);
+applicationContext.refresh();
+```
+
+이렇게 수정 후 잘 동작하는지 서버를 재시작하자 
